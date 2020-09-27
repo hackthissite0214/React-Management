@@ -20,6 +20,11 @@ const conn = mysql.createConnection({
 });
 conn.connect();
 
+//  파일 처리를 위한 모듈
+const multer = require('multer');
+const upload = multer({dest: './upload'});
+
+
 //  https://jsonlint.com/ json 확인
 app.get('/api/customers', (req, res) => {
     const sql = "SELECT * FROM CUSTOMER";
@@ -27,5 +32,26 @@ app.get('/api/customers', (req, res) => {
         res.send(rows);    
     });
 });
+
+app.use('/image', express.static('./upload'));
+
+app.post('/api/customers', upload.single('image'), (req, res) => {
+    let sql = "INSERT INTO CUSTOMER VALUES (null, ?, ?, ?, ?, ?)";
+    let image = '/image/' + req.file.filename;
+    let name = req.body.username;
+    let birthday = req.body.birthday;
+    let gender = req.body.gender;
+    let job = req.body.job;
+    console.log(name);
+    console.log(image);
+    console.log(birthday);
+    console.log(gender);
+    console.log(job);
+    let params = [image, name, birthday, gender, job];
+    conn.query(sql, params, (err, rows, fields) => {
+        res.send(rows);
+        console.log(err);
+    });
+})
 
 app.listen(port, () => console.log(`Listening on port ${port}`));
